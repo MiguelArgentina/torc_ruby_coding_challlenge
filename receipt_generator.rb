@@ -37,14 +37,7 @@ HEREDOC
     def generate_receipt(items)
       raise 'Invalid input. Call ReceiptGenerator.help for more info' unless valid_input?(items)
       sales_taxes, total_amount, processed_items = process items
-      puts ""
-      puts "*"*80
-      puts ""
-      puts "Generated receipt:"
-      puts ""
-      processed_items.each{|item| pp item}
-      puts "Sales Taxes: #{sales_taxes}"
-      puts "Total: #{total_amount}"
+      Presenters::ReceiptItemPresenter.present_to_client processed_items, sales_taxes, total_amount
     end
 
 
@@ -64,7 +57,7 @@ HEREDOC
         total_price_for_item = price + sales_tax + import_tax
         total_amount += quantity * total_price_for_item
         result = Presenters::ReceiptItemPresenter.new(quantity, imported, name, total_price_for_item)
-        processed_items << result.to_s
+        processed_items << result
       end
       [sales_taxes.round(2), total_amount, processed_items]
     end
@@ -95,8 +88,16 @@ HEREDOC
         @imported = imported
         @total_price_for_item = total_price_for_item
       end
+
+      def self.present_to_client processed_items, sales_taxes, total_amount
+        processed_items.each do |item|
+          puts item.to_s
+        end
+        puts "Sales Taxes: #{sales_taxes}"
+        puts "Total: #{total_amount}"
+      end
       def to_s
-        [@quantity, @imported ? 'imported' : '',@name, (@quantity * @total_price_for_item).round(2)].join(' ')
+        "#{@quantity} #{@imported ? 'imported' : ''} #{@name}: #{(@quantity * @total_price_for_item).round(2)}"
       end
     end
   end
@@ -120,7 +121,12 @@ input_3 = [
   [3,true,'box of chocolates',11.25, 'food']
 ]
 
+puts "*"*80
 ReceiptGenerator.help
+puts "*"*80
 ReceiptGenerator.generate_receipt(input_1)
+puts "*"*80
 ReceiptGenerator.generate_receipt(input_2)
+puts "*"*80
 ReceiptGenerator.generate_receipt(input_3)
+puts "*"*80
